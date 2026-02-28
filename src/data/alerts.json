@@ -10,6 +10,11 @@
     "recommendedRunInterval": "1d"
   },
   {
+    "name": "NewMFADevice",
+    "label": "Alert when users register new MFA devices",
+    "recommendedRunInterval": "1h"
+  },
+  {
     "name": "LicenseAssignmentErrors",
     "label": "Alert on license assignment errors",
     "recommendedRunInterval": "1d"
@@ -32,6 +37,44 @@
   {
     "name": "InactiveLicensedUsers",
     "label": "Alert on licensed users that have not logged in for X days",
+    "recommendedRunInterval": "1d",
+    "requiresInput": true,
+    "multipleInput": true,
+    "inputs": [
+      {
+        "inputType": "number",
+        "inputLabel": "Days since last login (default: 90)",
+        "inputName": "DaysSinceLastLogin"
+      },
+      {
+        "inputType": "switch",
+        "inputLabel": "Exclude disabled users?",
+        "inputName": "ExcludeDisabled"
+      }
+    ]
+  },
+  {
+    "name": "InactiveGuestUsers",
+    "label": "Alert on guest users that have not logged in for X days",
+    "recommendedRunInterval": "1d",
+    "requiresInput": true,
+    "multipleInput": true,
+    "inputs": [
+      {
+        "inputType": "number",
+        "inputLabel": "Days since last login (default: 90)",
+        "inputName": "DaysSinceLastLogin"
+      },
+      {
+        "inputType": "switch",
+        "inputLabel": "Exclude disabled guest users?",
+        "inputName": "ExcludeDisabled"
+      }
+    ]
+  },
+  {
+    "name": "InactiveUsers",
+    "label": "Alert on users that have not logged in for X days",
     "recommendedRunInterval": "1d",
     "requiresInput": true,
     "multipleInput": true,
@@ -416,6 +459,16 @@
     "description": "Monitors for new risky users in the tenant. Risky users are defined as users who have performed actions that are considered risky, such as password resets, MFA failures, or suspicious activity."
   },
   {
+    "name": "GroupMembershipChange",
+    "label": "Alert on group membership changes for monitored groups",
+    "recommendedRunInterval": "1h",
+    "requiresInput": true,
+    "inputType": "textField",
+    "inputLabel": "Group display names to monitor (comma separated, wildcards supported)",
+    "inputName": "InputValue",
+    "description": "Monitors audit logs for membership changes (add/remove) in specified groups. Supports wildcards like 'CA*' or '*Exclusion*'. Particularly useful for tracking changes to groups used in Conditional Access exclusions or other security-critical groups."
+  },
+  {
     "name": "LowTenantAlignment",
     "label": "Alert on low tenant alignment percentage",
     "requiresInput": true,
@@ -439,8 +492,27 @@
   {
     "name": "QuarantineReleaseRequests",
     "label": "Alert on quarantine release requests",
-    "recommendedRunInterval": "30m",
+    "recommendedRunInterval": "1h",
     "description": "Monitors for user requests to release quarantined messages and provides a CIPP-native alternative to the external email forwarding method. This helps MSPs maintain secure configurations while getting timely notifications about quarantine activity. Links to the tenant's quarantine page are provided in alerts."
+  },
+  {
+    "name": "StaleEntraDevices",
+    "label": "Alert on stale Entra devices that have not been active for X days",
+    "recommendedRunInterval": "1d",
+    "requiresInput": true,
+    "multipleInput": true,
+    "inputs": [
+      {
+        "inputType": "number",
+        "inputLabel": "Days since last activity (default: 90)",
+        "inputName": "DaysSinceLastActivity"
+      },
+      {
+        "inputType": "switch",
+        "inputLabel": "Exclude disabled devices?",
+        "inputName": "ExcludeDisabled"
+      }
+    ]
   },
   {
     "name": "SecureScore",

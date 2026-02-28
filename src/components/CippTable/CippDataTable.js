@@ -12,7 +12,7 @@ import {
 import { ResourceUnavailable } from "../resource-unavailable";
 import { ResourceError } from "../resource-error";
 import { Scrollbar } from "../scrollbar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { ApiGetCallWithPagination } from "../../api/ApiCall";
 import { utilTableMode } from "./util-tablemode";
 import { utilColumnsFromAPI, resolveSimpleColumnVariables } from "./util-columnsFromAPI";
@@ -25,6 +25,7 @@ import { getCippError } from "../../utils/get-cipp-error";
 import { Box } from "@mui/system";
 import { useSettings } from "../../hooks/use-settings";
 import { isEqual } from "lodash"; // Import lodash for deep comparison
+import { useLicenseBackfill } from "../../hooks/use-license-backfill";
 
 // Resolve dot-delimited property paths against arbitrary data objects.
 const getNestedValue = (source, path) => {
@@ -124,6 +125,11 @@ export const CippDataTable = (props) => {
       return acc;
     }, {});
   }, [filters]);
+
+  // Track if initial filters have been applied
+  const filtersInitializedRef = useRef(false);
+  const previousFiltersRef = useRef(null);
+
   const [columnVisibility, setColumnVisibility] = useState(initialColumnVisibility);
   const [configuredSimpleColumns, setConfiguredSimpleColumns] = useState(simpleColumns);
   const [usedData, setUsedData] = useState(data);
@@ -141,6 +147,9 @@ export const CippDataTable = (props) => {
   const waitingBool = api?.url ? true : false;
 
   const settings = useSettings();
+  
+  // Hook to trigger re-render when license backfill completes
+  const { updateTrigger } = useLicenseBackfill();
 
   const getRequestData = ApiGetCallWithPagination({
     url: api.url,
@@ -151,7 +160,15 @@ export const CippDataTable = (props) => {
   });
 
   useEffect(() => {
-    if (filters && Array.isArray(filters) && filters.length > 0) {
+    // Only set initial filters if they haven't been set yet OR if the filters prop has actually changed
+    const filtersChanged = !isEqual(filters, previousFiltersRef.current);
+
+    if (
+      filters &&
+      Array.isArray(filters) &&
+      filters.length > 0 &&
+      (!filtersInitializedRef.current || filtersChanged)
+    ) {
       // Process filters to add filterFn based on filterType
       const processedFilters = filters.map((filter) => {
         if (filter.filterType === "equal") {
@@ -165,6 +182,8 @@ export const CippDataTable = (props) => {
         return filter;
       });
       setColumnFilters(processedFilters);
+      filtersInitializedRef.current = true;
+      previousFiltersRef.current = filters;
     }
   }, [filters]);
 
@@ -296,8 +315,9 @@ export const CippDataTable = (props) => {
     ),
   );
   //create memoized version of usedColumns, and usedData
+  // Include updateTrigger in data to force re-render when license backfill completes
   const memoizedColumns = useMemo(() => usedColumns, [usedColumns]);
-  const memoizedData = useMemo(() => usedData, [usedData]);
+  const memoizedData = useMemo(() => usedData, [usedData, updateTrigger]);
 
   const handleActionDisabled = (row, action) => {
     if (action?.condition) {
@@ -740,20 +760,9 @@ export const CippDataTable = (props) => {
     },
   });
 
-  useEffect(() => {
-    if (filters && Array.isArray(filters) && filters.length > 0 && memoizedColumns.length > 0) {
-      // Make sure the table and columns are ready
-      setTimeout(() => {
-        if (table && typeof table.setColumnFilters === "function") {
-          const formattedFilters = filters.map((filter) => ({
-            id: filter.id || filter.columnId,
-            value: filter.value,
-          }));
-          table.setColumnFilters(formattedFilters);
-        }
-      });
-    }
-  }, [filters, memoizedColumns, table]);
+  // Remove the useEffect that was resetting filters on table changes
+  // The initial filter application is now handled by the columnFilters state
+  // and the useEffect above that only triggers on actual filter prop changes
 
   useEffect(() => {
     if (onChange && table.getSelectedRowModel().rows) {
