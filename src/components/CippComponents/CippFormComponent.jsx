@@ -12,6 +12,7 @@ import {
   Box,
   Input,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import { CippAutoComplete } from "./CippAutocomplete";
 import { CippTextFieldWithVariables } from "./CippTextFieldWithVariables";
@@ -94,6 +95,13 @@ export const CippFormComponent = (props) => {
         </Typography>
       );
 
+    case "alert":
+      return (
+        <Alert severity={other.severity || "info"} sx={{ my: 1 }}>
+          {label}
+        </Alert>
+      );
+
     case "hidden":
       return (
         <input
@@ -153,6 +161,7 @@ export const CippFormComponent = (props) => {
                       label={label}
                       value={field.value || ""}
                       onChange={field.onChange}
+                      onBlur={field.onBlur}
                       includeSystemVariables={includeSystemVariables}
                     />
                   ) : (
@@ -166,6 +175,7 @@ export const CippFormComponent = (props) => {
                       label={label}
                       value={field.value || ""}
                       onChange={field.onChange}
+                      onBlur={field.onBlur}
                     />
                   )
                 }
@@ -205,6 +215,7 @@ export const CippFormComponent = (props) => {
                     label={label}
                     value={field.value || ""}
                     onChange={field.onChange}
+                    onBlur={field.onBlur}
                     tenantFilter={tenantFilter}
                     includeSystemVariables={includeSystemVariables}
                   />
@@ -228,20 +239,31 @@ export const CippFormComponent = (props) => {
       return (
         <>
           <div>
-            <Tooltip title={label || ""} placement="top" arrow>
-              <TextField
-                type="password"
-                variant="filled"
-                fullWidth
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                {...other}
-                {...formControl.register(convertedName, { ...validators })}
-                label={label}
-                defaultValue={defaultValue}
-              />
-            </Tooltip>
+            <Controller
+              name={convertedName}
+              control={formControl.control}
+              defaultValue={defaultValue ?? ""}
+              rules={validators}
+              render={({ field }) => (
+                <Tooltip title={label || ""} placement="top" arrow>
+                  <TextField
+                    type="password"
+                    variant="filled"
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    {...other}
+                    label={label}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    inputRef={field.ref}
+                  />
+                </Tooltip>
+              )}
+            />
           </div>
           {get(errors, convertedName, {})?.message && (
             <Typography variant="subtitle3" color="error">
@@ -358,6 +380,7 @@ export const CippFormComponent = (props) => {
                     row={row}
                     value={field.value || ""}
                     onChange={(e) => field.onChange(e.target.value)}
+                    onBlur={field.onBlur}
                     {...other}
                   >
                     {props.options.map((option, idx) => (
@@ -398,6 +421,7 @@ export const CippFormComponent = (props) => {
                   label={label}
                   multiple={false}
                   onChange={(value) => field.onChange(value?.value)}
+                  onBlur={field.onBlur}
                 />
               )}
             />
@@ -441,6 +465,7 @@ export const CippFormComponent = (props) => {
                 defaultValue={field.value}
                 label={label}
                 onChange={(value) => field.onChange(value)}
+                onBlur={field.onBlur}
               />
             )}
           />
@@ -616,6 +641,7 @@ export const CippFormComponent = (props) => {
                           field.onChange(null); // Handle the case where no date is selected
                         }
                       }}
+                      onClose={field.onBlur}
                       ampm={false}
                       minutesStep={15}
                       inputFormat="yyyy/MM/dd HH:mm" // Display format
@@ -721,6 +747,7 @@ export const CippFormComponent = (props) => {
                         other.onChange(file);
                       }
                     }}
+                    onBlur={field.onBlur}
                   />
                 </Box>
               )}
