@@ -82,6 +82,7 @@ const Page = () => {
       icon: <TrashIcon />,
       multiPost: false,
       queryKey: "CommunityRepos",
+      condition: (row) => row.BuiltIn !== true,
     },
     {
       label: "Set Upload Branch",
@@ -140,7 +141,7 @@ const Page = () => {
   const watchIncludeForks = searchForm.watch("includeforks");
 
   const handleSearch = () => {
-    const searchTerms = watchSearchTerm.map((t) => t.value) ?? [];
+    const searchTerms = watchSearchTerm?.map((t) => t.value) ?? [];
     searchMutation.mutate({
       url: "/api/ExecGitHubAction",
       data: {
@@ -303,7 +304,7 @@ const Page = () => {
               >
                 <TextField
                   fullWidth
-                  label="Repository in 'owner/repo' format (e.g. KelvinTegelaar/CIPP)"
+                  label="Repository in 'owner/repo' format (e.g. CyberDrain/CIPP)"
                   value={repo}
                   onChange={(e) => setRepo(e.target.value)}
                   required={true}
